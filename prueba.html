@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="es"> 
+    <head>
+        <meta charset="utf-8"> 
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title> Sistema de pago </title>
+    </head>
+<body>
+    <h1>Primer sistema de pago</h1>
+    <input type="text" id="agregarpago" placeholder="Descripción del pago" /> 
+    <input type="number" id="valorpago" placeholder="Valor $" step="0.01" />
+    <button onclick="agregarPago()">Agregar Pago</button>
+    <button onclick="eliminarPago()">Eliminar Pago</button>
+    <button onclick="listaPago()">Lista de Pagos</button>
+    <ul id="listaPagos"></ul>
+
+    <script>
+        // Obtener pagos desde localStorage o inicializar vacío
+        let pagos = JSON.parse(localStorage.getItem("pagos")) || [];
+
+        function guardarPagos() {
+            localStorage.setItem("pagos", JSON.stringify(pagos));
+        }
+
+        function mensaje(){
+            alert("Pago realizado exitosamente");
+        }
+
+        function agregarPago() {
+            const descripcion = document.getElementById("agregarpago").value.trim();
+            const valor = parseFloat(document.getElementById("valorpago").value);
+
+            if (!descripcion) {
+                alert("Por favor, ingrese un pago.");
+                return;
+            }
+
+            if (isNaN(valor)) {
+                alert("Por favor, ingrese un valor numérico.");
+                return;
+            }
+
+            if (valor < 0) {
+                alert("El valor del pago no puede ser negativo.");
+                return;
+            }
+
+            pagos.push({
+                descripcion: descripcion,
+                monto: valor.toFixed(2),
+                completado: false
+            });
+
+            guardarPagos();
+
+            document.getElementById("agregarpago").value = "";
+            document.getElementById("valorpago").value = "";
+
+            alert("Pago agregado: " + descripcion + " - $" + valor.toFixed(2));
+            mensaje();
+            listaPago();
+        }
+
+        function eliminarPago() {
+            const descripcion = document.getElementById("agregarpago").value.trim();
+            const valor = parseFloat(document.getElementById("valorpago").value).toFixed(2);
+
+            const index = pagos.findIndex(p => p.descripcion === descripcion && p.monto === valor);
+
+            if (index > -1) {
+                pagos.splice(index, 1);
+                guardarPagos();
+                document.getElementById("agregarpago").value = "";
+                document.getElementById("valorpago").value = "";
+                alert("Pago eliminado: " + descripcion);
+                listaPago();
+            } else {
+                alert("Pago no encontrado.");
+            }
+        }
+
+        function listaPago() {
+            const lista = document.getElementById("listaPagos");
+            lista.innerHTML = "";
+
+            pagos.forEach((pago, index) => {
+                const li = document.createElement("li");
+                li.textContent = `${pago.descripcion} - $${pago.monto}`;
+                if (pago.completado) li.classList.add("completado");
+
+                const btnVisto = document.createElement("button");
+                btnVisto.textContent = pago.completado ? "✅" : "☐";
+                btnVisto.onclick = () => marcarComoCompletado(index);
+
+                li.appendChild(btnVisto);
+                lista.appendChild(li);
+            });
+        }
+
+        function marcarComoCompletado(index) {
+            pagos[index].completado = !pagos[index].completado;
+            guardarPagos();
+            listaPago();
+        }
+
+        // Mostrar la lista al cargar la página
+        window.onload = listaPago;
+    </script>
+</body>
+</html>
